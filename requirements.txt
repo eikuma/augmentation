@@ -110,7 +110,7 @@ networkx==2.6.3
 ninja==1.10.2.3
 notebook==6.4.3
 numba==0.53.0
-numpy==1.22.2
+numpy==1.21.6
 oauthlib==3.2.0
 openai==0.27.4
 opencv-contrib-python==4.5.3.56
