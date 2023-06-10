@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, render_template, send_file
 from PIL import Image
 import shutil
+import uuid
 
 app = Flask(__name__)
 
@@ -21,6 +22,11 @@ def upload():
         return 'No folder selected'
 
     output_folder = 'output'
+    os.makedirs(output_folder, exist_ok=True)
+
+    user_id = str(uuid.uuid4())  # アップロードごとに一意のIDを生成
+    output_folder = output_folder+'/'+user_id
+
     os.makedirs(output_folder, exist_ok=True)
 
     for file in folder:
