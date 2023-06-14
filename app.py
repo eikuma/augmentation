@@ -3,6 +3,9 @@ from flask import Flask, request, render_template, send_file
 from PIL import Image
 import shutil
 import uuid
+import albumentations as A
+import cv2
+import numpy as np
 
 app = Flask(__name__)
 
@@ -33,9 +36,15 @@ def upload():
         if file.filename == '':
             continue
 
-        image = Image.open(file)
+        img_array = np.asarray(bytearray(file.stream.read()), dtype=np.uint8)
+        image = cv2.imdecode(img_array, 1)
+        # image = cv2.imread(str(file))
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
         # ここで画像の加工を行います（必要に応じて）
-        processed_image = image.convert('L')  # 例：画像をグレースケールに変換
+        transform = A.Compose([A.Flip(p=1)])
+        # processed_image = image.convert('L')  # 例：画像をグレースケールに変換
+        processed = transform(image=image)
 
         filename = file.filename.rsplit('.', 1)[0]  # 拡張子を除いたファイル名を取得
         folder_name = os.path.dirname(file.filename)
@@ -44,7 +53,11 @@ def upload():
 
         output_path = os.path.join(
             output_folder_path, f'{os.path.basename(filename)}_processed.png')
-        processed_image.save(output_path, 'PNG')
+        processed_image = processed['image']
+
+        # RGBからBGRへ変更
+        processed_image = cv2.cvtColor(processed_image, cv2.COLOR_RGB2BGR)
+        cv2.imwrite(output_path, processed_image)
 
     # 変換後の画像をzipファイルに圧縮してダウンロード
     zip_filename = 'processed_images.zip'
