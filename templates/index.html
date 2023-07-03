@@ -1,20 +1,186 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="../static/css/style.css" />
     <title>Data Augmentation</title>
   </head>
   <body>
-    <h1>Data Augmentation</h1>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-      <input
-        type="file"
-        name="folder"
-        multiple
-        directory
-        webkitdirectory
-        mozdirectory
-      />
-      <input type="submit" value="Upload" />
-    </form>
+    <div class="container">
+      <div class="row mt-5">
+        <div class="col">
+          <h1>Data Augmentation</h1>
+        </div>
+      </div>
+      <form
+        action="/upload"
+        method="POST"
+        enctype="multipart/form-data"
+        onsubmit="return validateForm()"
+      >
+        <div class="row mb-4">
+          <div class="col-12">
+            <h2>画像フォルダを選択</h2>
+          </div>
+          <div class="col-12">
+            <input
+              type="file"
+              id="imageFolderInput"
+              name="imageFolder"
+              multiple
+              directory
+              webkitdirectory
+              mozdirectory
+              required
+            />
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-12">
+            <h2>アノテーションフォルダを選択</h2>
+          </div>
+          <div class="col-8">
+            <input
+              type="file"
+              id="annotationFolderInput"
+              name="annotationFolder"
+              multiple
+              directory
+              webkitdirectory
+              mozdirectory
+              required
+            />
+          </div>
+          <div class="col-4">
+            <select id="annotationType" name="annotationType">
+              <option value="" selected disabled>選択してください</option>
+              <option value="pascal_voc">pascal_voc</option>
+              <option value="coco">coco</option>
+              <option value="yolo">yolo</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+            <h2>加工方法を選択</h2>
+          </div>
+          <div class="col-12">
+            <!-- 
+              - 回転(Rotate)
+              - 反転(Flip)
+              - 明るさ(RandomBrightness)
+              - クロップ(RandomCrop)
+              - ランダムアフィン変換(ShiftScaleRotate)
+            -->
+            <select
+              id="augmentationType"
+              name="augmentationType"
+              onchange="showAdditionalForm()"
+            >
+              <option value="" selected disabled>選択してください</option>
+              <option value="flip">反転</option>
+              <option value="crop">クロップ</option>
+              <option value="rotate">回転</option>
+              <option value="brightness">明るさ</option>
+              <option value="ShiftScaleRotate">アフィン変換</option>
+            </select>
+          </div>
+        </div>
+        <div id="cropForm" style="display: none" class="row mt-3">
+          <div class="col-6 d-flex">
+            <h4>高さ</h4>
+            <input type="number" name="cropHeight" min="0" max="1024" />
+          </div>
+          <div class="col-6 d-flex">
+            <h4>幅</h4>
+            <input type="number" name="cropWidth" min="0" max="1024" />
+          </div>
+        </div>
+        <div id="brightnessForm" style="display: none" class="row mt-3">
+          <h4>明るさの変化の範囲</h4>
+          <div class="col d-flex">
+            <input
+              style="display: inline-block"
+              type="number"
+              name="brightnessMin"
+              min="-1"
+              max="1"
+              step="0.1"
+            />
+            <p>〜</p>
+            <input
+              style="display: inline-block"
+              type="number"
+              name="brightnessMax"
+              min="-1"
+              max="1"
+              step="0.1"
+            />
+          </div>
+        </div>
+        <div class="row mt-4">
+          <input type="submit" value="Upload" />
+        </div>
+      </form>
+    </div>
+
+    <script>
+      function showAdditionalForm() {
+        var augmentationType = document.getElementById("augmentationType");
+        var cropForm = document.getElementById("cropForm");
+        var brightnessForm = document.getElementById("brightnessForm");
+
+        if (augmentationType.value === "crop") {
+          cropForm.style.display = "flex";
+          brightnessForm.style.display = "none";
+        } else if (augmentationType.value === "brightness") {
+          cropForm.style.display = "none";
+          brightnessForm.style.display = "block";
+        } else {
+          cropForm.style.display = "none";
+          brightnessForm.style.display = "none";
+        }
+      }
+      function validateForm() {
+        var imageFolderInput = document.getElementById("imageFolderInput");
+        var annotationFolderInput = document.getElementById(
+          "annotationFolderInput"
+        );
+        console.log(imageFolderInput);
+        console.log(annotationFolderInput);
+
+        if (
+          imageFolderInput.files.length === 0 ||
+          annotationFolderInput.files.length === 0
+        ) {
+          alert("Please select both image folder and annotation folder.");
+          return false;
+        }
+
+        var augmentationType = document.getElementById("augmentationType");
+
+        if (augmentationType.value === "flip") {
+          var flipAngle = document.getElementsByName("flipAngle")[0];
+
+          if (flipAngle.value === "") {
+            alert("Please enter the flip angle.");
+            return false;
+          }
+        } else if (augmentationType.value === "crop") {
+          var cropProbability =
+            document.getElementsByName("cropProbability")[0];
+
+          if (cropProbability.value === "") {
+            alert("Please select the crop probability.");
+            return false;
+          }
+        }
+      }
+    </script>
   </body>
 </html>
