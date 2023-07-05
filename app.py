@@ -33,11 +33,6 @@ def upload():
     if not annotation_folder:
         return 'No folder selected'
 
-    # アノテーション形式を受け付ける
-    annotation_type = request.form.get('annotationType')
-    if not annotation_type:
-        return 'No annotation type selected'
-
     # データ拡張の種類を受け付ける
     augmentation_type = request.form.get('augmentationType')
     if not augmentation_type:
@@ -53,23 +48,23 @@ def upload():
 
     # ここで画像の加工を行います（必要に応じて）-------------------------------------------
     if augmentation_type == "flip":
-        transform = A.Compose([A.Flip(p=1)], bbox_params=A.BboxParams(format=annotation_type, min_area=1024,
+        transform = A.Compose([A.Flip(p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                       min_visibility=0.1, label_fields=['class_labels']))
     elif augmentation_type == "crop":
         cropHeight = int(request.form.get('cropHeight'))
         cropWidth = int(request.form.get('cropWidth'))
-        transform = A.Compose([A.RandomCrop(height=cropHeight, width=cropWidth, p=1)], bbox_params=A.BboxParams(format=annotation_type, min_area=1024,
+        transform = A.Compose([A.RandomCrop(height=cropHeight, width=cropWidth, p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                                                                 min_visibility=0.1, label_fields=['class_labels']))
     elif augmentation_type == "rotate":
-        transform = A.Compose([A.Rotate(p=1)], bbox_params=A.BboxParams(format=annotation_type, min_area=1024,
+        transform = A.Compose([A.Rotate(p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                         min_visibility=0.1, label_fields=['class_labels']))
     elif augmentation_type == "brightness":
         brightnessMin = float(request.form.get('brightnessMin'))
         brightnessMax = float(request.form.get('brightnessMax'))
-        transform = A.Compose([A.RandomBrightness(limit=(brightnessMin, brightnessMax), p=1)], bbox_params=A.BboxParams(format=annotation_type, min_area=1024,
+        transform = A.Compose([A.RandomBrightness(limit=(brightnessMin, brightnessMax), p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                                                                         min_visibility=0.1, label_fields=['class_labels']))
     else:
-        transform = A.Compose([A.ShiftScaleRotate(p=1)], bbox_params=A.BboxParams(format=annotation_type, min_area=1024,
+        transform = A.Compose([A.ShiftScaleRotate(p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                                   min_visibility=0.1, label_fields=['class_labels']))
 
     # --------------------------------------------------------------------------
