@@ -156,19 +156,25 @@
 
         var augmentationType = document.getElementById("augmentationType");
 
-        if (augmentationType.value === "flip") {
-          var flipAngle = document.getElementsByName("flipAngle")[0];
+        if (augmentationType.value === "") {
+          alert("Please enter the augmentation type.");
+          return false;
+        }
 
-          if (flipAngle.value === "") {
-            alert("Please enter the flip angle.");
+        if (augmentationType.value === "brightness") {
+          var brightnessMin = document.getElementsByName("brightnessMin")[0];
+          var brightnessMax = document.getElementsByName("brightnessMax")[0];
+
+          if (brightnessMin.value === "" || brightnessMax.value === "") {
+            alert("Please enter the brightness range.");
             return false;
           }
         } else if (augmentationType.value === "crop") {
-          var cropProbability =
-            document.getElementsByName("cropProbability")[0];
+          var cropHeight = document.getElementsByName("cropHeight")[0];
+          var cropWidth = document.getElementsByName("cropWidth")[0];
 
-          if (cropProbability.value === "") {
-            alert("Please select the crop probability.");
+          if (cropHeight.value === "" || cropWidth.value === "") {
+            alert("Please enter the crop size.");
             return false;
           }
         }

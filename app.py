@@ -38,6 +38,7 @@ def upload():
     if not augmentation_type:
         return 'No augmentation type selected'
 
+    # 一時的なoutputフォルダを作成する
     output_folder = 'output'
     os.makedirs(output_folder, exist_ok=True)
 
@@ -46,38 +47,43 @@ def upload():
 
     os.makedirs(output_folder, exist_ok=True)
 
-    # ここで画像の加工を行います（必要に応じて）-------------------------------------------
+    # ここで画像の加工を行う-------------------------------------------
     if augmentation_type == "flip":
+        # 反転
         transform = A.Compose([A.Flip(p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                       min_visibility=0.1, label_fields=['class_labels']))
     elif augmentation_type == "crop":
+        # クロップ
         cropHeight = int(request.form.get('cropHeight'))
         cropWidth = int(request.form.get('cropWidth'))
         transform = A.Compose([A.RandomCrop(height=cropHeight, width=cropWidth, p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                                                                 min_visibility=0.1, label_fields=['class_labels']))
     elif augmentation_type == "rotate":
+        # 回転
         transform = A.Compose([A.Rotate(p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                         min_visibility=0.1, label_fields=['class_labels']))
     elif augmentation_type == "brightness":
+        # 明るさ
         brightnessMin = float(request.form.get('brightnessMin'))
         brightnessMax = float(request.form.get('brightnessMax'))
         transform = A.Compose([A.RandomBrightness(limit=(brightnessMin, brightnessMax), p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                                                                         min_visibility=0.1, label_fields=['class_labels']))
     else:
+        # ランダムアフィン変換
         transform = A.Compose([A.ShiftScaleRotate(p=1)], bbox_params=A.BboxParams(format="yolo", min_area=1024,
                                                                                   min_visibility=0.1, label_fields=['class_labels']))
 
     # --------------------------------------------------------------------------
+
+    # 画像フォルダとアノテーションフォルダの中身をソートする
     image_folder = sorted(image_folder, key=lambda x: x.filename)
     annotation_folder = sorted(annotation_folder, key=lambda x: x.filename)
 
-    # print(image_folder)
+    for img_file, annotation_file in zip(image_folder, annotation_folder):
 
-    for file, annotation_file in zip(image_folder, annotation_folder):
-        if file.filename == '':
-            continue
-
-        img_array = np.asarray(bytearray(file.stream.read()), dtype=np.uint8)
+        # 画像の読み込み
+        img_array = np.asarray(
+            bytearray(img_file.stream.read()), dtype=np.uint8)
         image = cv2.imdecode(img_array, 1)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
@@ -107,21 +113,19 @@ def upload():
             # BBoxの配列に追加
             bboxes.append(anno_list)
 
+        # 変換
         processed = transform(image=image, bboxes=bboxes,
                               class_labels=class_labels)
 
-        filename = file.filename.rsplit('.', 1)[0]  # 拡張子を除いたファイル名を取得
-        folder_name = os.path.dirname(file.filename)
-        output_folder_path = os.path.join(output_folder, folder_name)
-        os.makedirs(output_folder_path, exist_ok=True)
+        filename = img_file.filename.rsplit('.', 1)[0]  # 拡張子を除いたファイル名を取得
 
-        os.makedirs(output_folder_path+"/image", exist_ok=True)
-        os.makedirs(output_folder_path+"/label", exist_ok=True)
+        os.makedirs(output_folder+"/image", exist_ok=True)
+        os.makedirs(output_folder+"/label", exist_ok=True)
 
         output_image_path = os.path.join(
-            output_folder_path+"/image", f'{os.path.basename(filename)}_processed.png')
+            output_folder+"/image", f'{os.path.basename(filename)}_processed.png')
         output_label_path = os.path.join(
-            output_folder_path+"/label", f'{os.path.basename(filename)}_processed.txt')
+            output_folder+"/label", f'{os.path.basename(filename)}_processed.txt')
 
         processed_image = processed['image']
         processed_bboxes = processed['bboxes']
